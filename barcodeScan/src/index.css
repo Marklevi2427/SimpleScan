@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: 130mm 130mm;
+    margin: 0;
+  }
+
+  html,
+  body {
+    width: 130mm !important;
+    height: 130mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 130mm !important;
+    height: 180mm !important;
+
+    box-sizing: border-box;
+    margin: 0 !important;
+    padding: 5mm !important;
+
+    background: white !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Make product table fill available space */
+  .product-grid {
+    width: 100%;
+    height: 100%;
+    border: 3px solid black !important;
+    border-radius: 0 !important;
+  }
+
+  .product-grid > div {
+    min-height: 0;
+  }
+
+  .quantity-input,
+  .print-button {
+    display: none !important;
+  }
+
+  @page {
+    size: 130mm 130mm;
+    margin: 0;
+  }
+}
