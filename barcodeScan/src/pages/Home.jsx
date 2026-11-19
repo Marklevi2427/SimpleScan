@@ -5,9 +5,10 @@ import { QRCodeSVG } from "qrcode.react";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
-  const [barcode, setBarcode] = useState("");
+  const [barcode, setBarcode] = useState(" ");
   const [result, setResult] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState("");
+  const [totalRoll, setTotalRoll] = useState([]);
 
   // Load Excel file
   useEffect(() => {
@@ -37,10 +38,25 @@ const Home = () => {
     e.preventDefault();
 
     const scannedCode = barcode.trim();
+    // Check if barcode already exists
+
+    const isDuplicate = totalRoll.some((item) => item === scannedCode);
+    if (isDuplicate) {
+      alert("REJECTED: This item has already been scanned!");
+      return;
+    }
+
+    const scannedItemCode = scannedCode.split("|")[1];
+    if (!scannedItemCode) {
+      setBarcode("");
+      return;
+    }
 
     const found = products.find(
-      (item) => String(item["Primary Code"]).trim() === scannedCode,
+      (item) => String(item["Primary Code"]).trim() === scannedItemCode,
     );
+
+    setTotalRoll((prev) => [...prev, scannedCode]);
 
     setResult(found || null);
     setBarcode("");
@@ -77,33 +93,42 @@ const Home = () => {
         {result ? (
           <div className="print-area mt-6 p-5 rounded-2xl bg-white/50 border border-white/60">
             {/* Vertical Product Grid */}
-            <div className="border-[3px] border-slate-800 rounded-lg overflow-hidden text-slate-800">
-              <div className="grid grid-cols-2">
-                <div className="bg-white-100 p-3 font-bold border-r-[3px] border-b-[3px] border-slate-800">
-                  Code
-                </div>
-                <div className="p-3 border-b-[3px] border-slate-800 font-semibold">
-                  {result["Primary Code"]}
-                </div>
 
-                <div className="bg-white-100 p-3 font-bold border-r-[3px] border-b-[3px] border-slate-800">
-                  Size
-                </div>
-                <div className="p-3 border-b-[3px] border-slate-800 font-semibold">
-                  {result.Size}
-                </div>
+            <div className="print-area mt-6 p-3 rounded-2xl bg-white/50 border border-white/60">
+              <div className="border-[3px] border-slate-800 rounded-lg overflow-hidden text-slate-800">
+                <div className="grid grid-cols-[1fr_3fr]">
+                  {/* Grade */}
+                  <div className="bg-slate-100 px-3 py-5 font-bold border-r-[3px] border-b-[3px] border-slate-800 text-2xl uppercase">
+                    Grade
+                  </div>
+                  <div className="px-3 py-5 border-b-[3px] border-slate-800 flex items-center justify-center font-semibold text-2xl uppercase">
+                    {result.Grade}
+                  </div>
 
-                <div className="bg-white-100 p-3 font-bold border-r-[3px] border-b-[3px] border-slate-800">
-                  Grade
-                </div>
-                <div className="p-3 border-b-[3px] border-slate-800 font-semibold">
-                  {result.Grade}
-                </div>
+                  {/* Size */}
+                  <div className="bg-slate-100 px-3 py-5 font-bold border-r-[3px] border-b-[3px] border-slate-800 text-2xl uppercase">
+                    Size
+                  </div>
+                  <div className="px-3 py-5 border-b-[3px] border-slate-800 flex items-center justify-center font-semibold text-2xl uppercase">
+                    {result.Size}
+                  </div>
 
-                <div className="bg-white-100 p-3 font-bold border-r-[3px] border-slate-800">
-                  Roll
+                  {/* Code */}
+                  <div className="bg-slate-100 px-3 py-5 font-bold border-r-[3px] border-b-[3px] border-slate-800 text-2xl uppercase">
+                    Code
+                  </div>
+                  <div className="px-3 py-5 border-b-[3px] border-slate-800 flex items-center justify-center font-semibold text-2xl uppercase">
+                    {result["Primary Code"]}
+                  </div>
+
+                  {/* Roll */}
+                  <div className="bg-slate-100 px-3 py-5 font-bold border-r-[3px] border-slate-800 text-2xl uppercase">
+                    Roll
+                  </div>
+                  <div className="px-3 py-5 flex items-center justify-center font-semibold text-2xl uppercase">
+                    {quantity !== "" ? quantity : totalRoll.length}
+                  </div>
                 </div>
-                <div className="p-3 font-semibold">{quantity}</div>
               </div>
             </div>
 
@@ -130,7 +155,7 @@ const Home = () => {
             <button
               type="button"
               onClick={() => window.print()}
-              disabled={!quantity || Number(quantity) < 1}
+              disabled={Number(quantity || totalRoll.length) < 1}
               className="print-button w-full mt-5 py-3 rounded-xl
       bg-blue-600 hover:bg-blue-700
       text-white font-semibold transition
