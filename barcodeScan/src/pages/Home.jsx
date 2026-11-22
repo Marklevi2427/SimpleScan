@@ -34,9 +34,12 @@ const Home = () => {
     loadExcel();
   }, []);
   const isValidBarcode = (code) => {
-    const barcodePattern = /^\d{6}E-SA-\d{2}-\d{2}[A-Z]\|\d{5}\|P$/;
+    const barcodePattern =
+      /^\d{6}E-S[A-Z0-9]-(?:\d{2}[a-zA-Z]|\d{2}|\d{3})-\d{2}[A-Z]\|\d{5}\|P$/i;
 
-    return code.length === 25 && barcodePattern.test(code);
+    return (
+      typeof code === "string" && code.length <= 26 && barcodePattern.test(code)
+    );
   };
   const handleScan = (e) => {
     e.preventDefault();
