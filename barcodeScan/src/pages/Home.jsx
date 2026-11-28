@@ -9,6 +9,7 @@ const Home = () => {
   const [result, setResult] = useState(null);
   const [quantity, setQuantity] = useState("");
   const [totalRoll, setTotalRoll] = useState([]);
+  const [barcodeData, setBarcodeData] = useState([]);
 
   // Load Excel file
   useEffect(() => {
@@ -33,6 +34,7 @@ const Home = () => {
 
     loadExcel();
   }, []);
+
   const isValidBarcode = (code) => {
     const barcodePattern =
       /^\d{6}E-S[A-Z0-9]-(?:\d{2}[a-zA-Z]|\d{2}|\d{3})-\d{2}[A-Z]\|\d{5}\|P$/i;
@@ -41,10 +43,16 @@ const Home = () => {
       typeof code === "string" && code.length <= 26 && barcodePattern.test(code)
     );
   };
+
   const handleScan = (e) => {
     e.preventDefault();
 
     const scannedCode = barcode.trim();
+    if (!isValidBarcode(scannedCode)) {
+      alert("REJECTED: Invalid barcode length or format!");
+      setBarcode("");
+      return;
+    }
 
     if (!scannedCode) return;
 
@@ -87,14 +95,13 @@ const Home = () => {
       setBarcode("");
       return;
     }
-    if (!isValidBarcode(scannedCode)) {
-      alert("REJECTED: Invalid barcode length or format!");
-      setBarcode("");
-      return;
-    }
+
     // 4. Add scanned barcode
     setTotalRoll((prev) => [...prev, scannedCode]);
 
+    let initialData = [];
+    initialData.push(scannedCode);
+    setBarcodeData((prev) => [...prev, scannedCode]);
     // 5. Update product information
     setResult(found);
 
@@ -116,11 +123,96 @@ const Home = () => {
     ? `20${oldestRoll.split("|")[0].slice(0, 6)}`
     : "";
 
+  const handleReset = () => {
+    const confirmReset = window.confirm(
+      "Are you sure you want to reset all scanned data?",
+    );
+
+    if (!confirmReset) return;
+
+    setBarcodeData([]);
+    setTotalRoll([]);
+    setResult(null);
+    setQuantity("");
+    setBarcode("");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-5 bg-linear-to-br from-blue-100 via-blue-200 to-slate-100">
+    <div className="min-h-screen relative flex items-center justify-center p-5 bg-linear-to-br from-blue-100 via-blue-200 to-slate-100">
+      {result && (
+        <button
+          type="button"
+          onClick={handleReset}
+          className="absolute top-12 left-80 px-6 py-4 rounded-2xl
+  bg-white/50 backdrop-blur-xl
+  border border-white/70
+  shadow-[0_15px_40px_rgba(30,64,175,0.12)]
+  text-red-600 font-bold
+  hover:bg-red-500 hover:text-white
+  transition-all duration-200"
+        >
+          Reset All Data
+        </button>
+      )}
+
+      {result && (
+        <div
+          className="absolute top-12 right-10 w-105 max-h-[80vh] p-6 rounded-3xl
+    bg-white/50 backdrop-blur-xl
+    border border-white/70
+    shadow-[0_15px_40px_rgba(30,64,175,0.12)]"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl font-bold text-blue-900">Scanned Data</h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Barcode scan history
+              </p>
+            </div>
+
+            <div className="px-3 py-1.5 rounded-full bg-blue-100/80 text-blue-700 text-sm font-bold">
+              {barcodeData.length} Items
+            </div>
+          </div>
+
+          {/* Barcode List */}
+          <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-2">
+            {barcodeData.map((code, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-4 rounded-xl
+          bg-white/70 border border-white/80
+          shadow-sm transition-all duration-200
+          hover:bg-white/90"
+              >
+                {/* Number */}
+                <div className="shrink-0 w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <span className="text-sm font-bold text-blue-700">
+                    {index + 1}
+                  </span>
+                </div>
+
+                {/* Barcode */}
+                <p className="text-sm font-semibold text-slate-700 break-all">
+                  {code}
+                </p>
+              </div>
+            ))}
+
+            {/* Empty State */}
+            {barcodeData.length === 0 && (
+              <p className="text-center text-slate-400 py-8">
+                No barcode scanned yet.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Glassmorphism Card */}
       <div
-        className="w-full max-w-md p-8 sm:p-10 rounded-3xl
+        className="w-full  max-w-md p-8 sm:p-10 rounded-3xl
       bg-white/50 backdrop-blur-xl
       border border-white/70
       shadow-[0_15px_40px_rgba(30,64,175,0.12)]"
